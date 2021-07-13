@@ -1,8 +1,9 @@
 from math import exp,pow,sqrt
 from BuildLattice import buildLattice
 from CalcPayOff import calcPayOff
+
 class PriceOptionTrinKRClass:
-    def __init__(self, Underlying, Strike,Rate,T,NumOfTimeSteps,Sigma,Lam,StrCallPut):
+    def __init__(self, Underlying, Strike,Rate,T,NumOfTimeSteps,Sigma,Lam,StrCallPut,OptionType):
         self.Underlying = Underlying
         self.Strike = Strike
         self.Rate=Rate
@@ -11,15 +12,10 @@ class PriceOptionTrinKRClass:
         self.Sigma=Sigma
         self.Lam=Lam
         self.StrCallPut=StrCallPut
+        self.OptionType=OptionType
 
     def priceOptionTrinKR(self):
-        """
-        The function calculates a standard European option price by using
-        the Cox-Ross-Rubinstein (CRR) model
-        Ref: Cox, J. C.; Ross, S. A.; Rubinstein, M. (1979).
-        "Option pricing: A simplified approach". Journal of Financial Economics,
-        7 (3): 229. doi:10.1016/0304-405X(79)90015-1. 
-        """
+
         dt=self.T/self.NumOfTimeSteps
         r=exp(self.Rate*dt)
         u=exp(self.Lam*self.Sigma*sqrt(dt))
@@ -47,9 +43,15 @@ class PriceOptionTrinKRClass:
         for i in range(self.NumOfTimeSteps-1):
             Idx=self.NumOfTimeSteps-1-i
             for k in range(len(TrinLatticeOption[Idx])):
-                TrinLatticeOption[Idx][k]=(1/r)*(q1*TrinLatticeOption[Idx+1][k]+q2*TrinLatticeOption[Idx+1][k+1]+q3*TrinLatticeOption[Idx+1][k+2])
+                if self.OptionType=="American":
+                    TrinLatticeOption[Idx][k]=(1/r)*(q1*TrinLatticeOption[Idx+1][k]+q2*TrinLatticeOption[Idx+1][k+1]+q3*TrinLatticeOption[Idx+1][k+2])
+                    I=calcPayOff(TrinLatticeUnderlying[Idx][k],self.Strike,self.StrCallPut)
+                    TrinLatticeOption[Idx][k]=max(I,TrinLatticeOption[Idx][k])
+                else:
+                    TrinLatticeOption[Idx][k]=(1/r)*(q1*TrinLatticeOption[Idx+1][k]+q2*TrinLatticeOption[Idx+1][k+1]+q3*TrinLatticeOption[Idx+1][k+2])
             if Idx==1:
                 TrinLatticeOption[0][0]=(1/r)*(q1*TrinLatticeOption[1][0]+q2*TrinLatticeOption[1][1]+q3*TrinLatticeOption[1][2])
         OptionPrice=TrinLatticeOption[0][0]
         return OptionPrice
+
 
