@@ -52,6 +52,26 @@ class PriceOptionTrinKRClass:
             if Idx==1:
                 TrinLatticeOption[0][0]=(1/r)*(q1*TrinLatticeOption[1][0]+q2*TrinLatticeOption[1][1]+q3*TrinLatticeOption[1][2])
         OptionPrice=TrinLatticeOption[0][0]
-        return OptionPrice
-
+        Delta=(TrinLatticeOption[1][0]-TrinLatticeOption[1][2])/(TrinLatticeUnderlying[1][0]-TrinLatticeUnderlying[1][2])
+        deltaS=(TrinLatticeUnderlying[1][0]-TrinLatticeUnderlying[1][2])/2
+        Gamma=(TrinLatticeOption[1][0]+TrinLatticeOption[1][2]-2*TrinLatticeOption[1][1])/(deltaS*deltaS)
+        return OptionPrice,Delta,Gamma
+    def vegaCalculation(self,epsilon):
+        sigmaOld=self.Sigma
+        self.Sigma=sigmaOld+epsilon
+        v1,d1,g1=self.priceOptionTrinKR()
+        self.Sigma=sigmaOld-epsilon
+        v2,d2,g2=self.priceOptionTrinKR()
+        vega=(v1-v2)/(2*epsilon)
+        self.Sigma=sigmaOld
+        return vega
+    def rhoCalculation(self,epsilon):
+        rOld=self.Rate
+        self.Rate=rOld+epsilon
+        v1,d1,g1=self.priceOptionTrinKR()
+        self.Rate=rOld-epsilon
+        v2,d2,g2=self.priceOptionTrinKR()
+        rho=(v1-v2)/(2*epsilon)
+        self.Rate=rOld
+        return rho
 

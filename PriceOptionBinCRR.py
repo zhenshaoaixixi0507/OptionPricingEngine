@@ -42,7 +42,29 @@ class PriceOptionBinCRRClass:
                 else:
                     BinLatticeOption[Idx][k]=(1/r)*(q*BinLatticeOption[Idx+1][k]+(1-q)*BinLatticeOption[Idx+1][k+1])
             if Idx==1:
-                BinLatticeOption[0][0]=(1/r)*(q*BinLatticeOption[1][0]+(1-q)*BinLatticeOption[1][1])
+                BinLatticeOption[0][0]=(1/r)*(q*BinLatticeOption[1][0]+(1-q)*BinLatticeOption[1][1])        
         OptionPrice=BinLatticeOption[0][0]
-        return OptionPrice
-
+        Delta=(BinLatticeOption[1][0]-BinLatticeOption[1][1])/(BinLatticeUnderlying[1][0]-BinLatticeUnderlying[1][1])
+        delta1=(BinLatticeOption[2][2]-BinLatticeOption[2][1])/(BinLatticeUnderlying[2][2]-BinLatticeUnderlying[2][1])
+        delta2=(BinLatticeOption[2][1]-BinLatticeOption[2][0])/(BinLatticeUnderlying[2][1]-BinLatticeUnderlying[2][0])
+        Gamma=(delta1-delta2)/(0.5*(BinLatticeUnderlying[2][2]-BinLatticeUnderlying[2][0]))
+        return OptionPrice,Delta,Gamma
+    
+    def vegaCalculation(self,epsilon):
+        sigmaOld=self.Sigma
+        self.Sigma=sigmaOld+epsilon
+        v1,d1,g1=self.priceOptionBinCRR()
+        self.Sigma=sigmaOld-epsilon
+        v2,d2,g2=self.priceOptionBinCRR()
+        vega=(v1-v2)/(2*epsilon)
+        self.Sigma=sigmaOld
+        return vega
+    def rhoCalculation(self,epsilon):
+        rOld=self.Rate
+        self.Rate=rOld+epsilon
+        v1,d1,g1=self.priceOptionBinCRR()
+        self.Rate=rOld-epsilon
+        v2,d2,g2=self.priceOptionBinCRR()
+        rho=(v1-v2)/(2*epsilon)
+        self.Rate=rOld
+        return rho
